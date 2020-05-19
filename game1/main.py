@@ -21,6 +21,14 @@ class Pawn:
     def draw(self,target_surf):
         target_surf.blit(self.image,self.pos)
 
+    def contains(self, pt):
+        (posx, posy) = self.pos
+        pawn_width = self.image.get_width()
+        pawn_height = self.image.get_height()
+        (x, y) = pt
+        result=(x >= posx and x < posx + pawn_width and y >= posy and y < posy + pawn_height)
+        return result
+
     def contains(self,pt):
         (posx,posy)=self.pos
         pawn_width=self.image.get_width()
@@ -31,11 +39,70 @@ class Pawn:
     def move(self,pos):
         self.pos=pos
 
-def showPossibleMove(sprite):
-    pos=list(sprite.pos)
-    pos[0]=262
+def showPossibleMove(cord,sprites,chessboard,event):
+    lu=False
+    l=False
+    r=False
+    ru=False
+    u=False
+    dl=False
+    d=False
+    dr=False
+    cordx = cord[0]
+    cordy = cord[1]
+    for sprite in sprites:
+        if (sprite.contains((cordx - 60, cordy))):
+            #print(' pionek po lewej')
+            l=True
+        if (sprite.contains((cordx - 60, cordy - 60))):
+            #print('pinoek jest po lewej gora')
+            lu=True
+        if (sprite.contains((cordx + 60, cordy))):
+            #print(' pionek po prawej')
+            r=True
+        if (sprite.contains((cordx + 60, cordy - 60))):
+            #print(' pionek po prawej gora')
+            ru=True
+        if (sprite.contains((cordx, cordy + 60))):
+            #print('pionek na dole')
+            d=True
+        if (sprite.contains((cordx + 60, cordy + 60))):
+            #print('pionek na dole prawa')
+            dr=True
+        if (sprite.contains((cordx - 60, cordy + 60))):
+            #print('pionek na dole lewa')
+            dl=True
+        if (sprite.contains((cordx, cordy - 60))):
+            #print('pionek na gorze')
+            u=True
 
+    if(u==False):
+        rect = (cordx-12, cordy-70, 40, 40)
+        chessboard.fill((255,204,204),rect)
 
+    if(lu==False):
+        rect=(cordx-72,cordy-70,40,40)
+        chessboard.fill((255, 204, 204), rect)
+
+    if(ru==False):
+        rect = (cordx + 48, cordy - 70, 40, 40)
+        chessboard.fill((255, 204, 204), rect)
+    if(d==False):
+        rect=(cordx-12,cordy+50,40,40)
+        chessboard.fill((255,204,204),rect)
+    if(dl==False):
+        rect = (cordx - 75, cordy + 50, 40, 40)
+        chessboard.fill((255, 204, 204), rect)
+    if (dr == False):
+        rect = (cordx + 50, cordy + 50, 40, 40)
+        chessboard.fill((255, 204, 204), rect)
+    if (r == False):
+        rect = (cordx + 50, cordy-10, 40, 40)
+        chessboard.fill((255, 204, 204), rect)
+    if (l == False):
+        rect = (cordx - 70, cordy-10, 40, 40)
+        chessboard.fill((255, 204, 204), rect)
+    return True
 
 def drawChessBoard():
     whity= [6,6,6,6,6,6,6,6]
@@ -57,6 +124,11 @@ def drawChessBoard():
     white_pawn=pygame.image.load("pawn.png")
     white_pawn_center=(sq-white_pawn.get_width()) //2
 
+    choice=False
+    changePawn=False
+    white_pawn = pygame.image.load("Resources/pawn.png")
+    white_pawn_center = (sq - white_pawn.get_width()) // 2
+
     black_pawn=pygame.image.load("black1.png")
     black_pawn_center=(sq-black_pawn.get_width()) //2
 
@@ -77,6 +149,9 @@ def drawChessBoard():
         sprites.append(pawnSprite4)
 
 
+
+
+    click=False;
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -86,26 +161,21 @@ def drawChessBoard():
             pos=event.dict["pos"]
             actual_positon=pos
             print(pos)
+            if(choice):
+                print('wybor'+str(pos))
+                a=list(pos)
+                actual_sprite.move(pos)
+
+                choice=False
+            actual_sprite = Pawn('', 0)
+            click=False
 
 
         if event.type == pygame.MOUSEBUTTONUP:
-            print('up'+str(actual_sprite))
-            #actual_sprite.move(actual_positon)
-            if(actual_sprite.pos!=0):
-                print(actual_sprite.pos)
-                cord=list(actual_sprite.pos)
-                cordx=cord[0]
-                cordy=cord[1]
-                for sprite in sprites:
-                    if(sprite.contains((cordx-60,cordy))):
-                        print(' pionek po lewej')
-                    if(sprite.contains((cordx+60,cordy))):
-                        print(' pionek po prawej')
-                    if (sprite.contains((cordx,cordy+60))):
-                        print('pionek na dole')
-                    if (sprite.contains((cordx, cordy-60))):
-                        print('pionek na gorze')
+            #print('up'+str(actual_sprite))
+            click=True;
 
+            #actual_sprite.move(actual_positon)
 
 
         for sprite in sprites:
@@ -130,17 +200,12 @@ def drawChessBoard():
         for sprite in sprites:
             sprite.draw(chessboard)
 
-        # for (x,y) in enumerate(whity):
-        #     chessboard.blit(white_pawn, ((x * sq + white_pawn_center), y * sq + white_pawn_center))
-        #
-        # for (x, y) in enumerate(whity2):
-        #     chessboard.blit(white_pawn, ((x * sq + white_pawn_center), y * sq + white_pawn_center))
-        #
-        # for(x,y) in enumerate(blacks):
-        #     chessboard.blit(black_pawn,(x*sq+black_pawn_center,y*sq+black_pawn_center))
-        #
-        # for (x, y) in enumerate(blacks2):
-        #     chessboard.blit(black_pawn, (x * sq + black_pawn_center, y * sq + black_pawn_center))
+        if (click == True):
+            if (actual_sprite.pos != 0):
+                #print(actual_sprite.pos)
+                cord = list(actual_sprite.pos)
+                choice=showPossibleMove(cord, sprites, chessboard,event)
+
 
 
         pygame.display.flip()
